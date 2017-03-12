@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>todolist</title>
+	<script src="https://unpkg.com/vue/dist/vue.js"></script>
+</head>
+<body>
+
+	<div id="demo">
+		<div>
+			<input type="text" placeholder="what to do?" v-model="newLabel">
+			<button @click="add(newLabel)">add</button>			
+		</div>
+		<ul>
+			<li v-for="item in items" v-show="needShow(item)">
+				<input type="checkbox" v-model="item.isFinished" >
+				<span>{{item.label}}</span>
+				<button @click="del(item)">X</button>
+			</li>
+		</ul>
+		<div>
+			<button @click="selectedType(0)">ALL {{items.length}}</button>
+			<button @click="selectedType(1)">NOTFINISHED {{notfinished.length}}</button>
+			<button @click="selectedType(2)">COMPLETED {{completed.length}}</button>
+		</div>
+	</div>
+
+	<script>
+		const STORAGE_KEY= [];
+		var vm = new Vue({
+		  	el: '#demo',
+			data: {
+				items: fetch(),
+				newLabel: '',
+				type: 0
+			},
+			computed: {
+				completed: function() {
+					return this.items.filter(function(item) {
+						return item.isFinished === true
+					});
+				},
+				notfinished: function() {
+					return this.items.filter(function(item) {
+						return item.isFinished === false
+					});
+				}
+			},
+			methods: {
+				needShow(item) {
+					if(this.type === 0) {
+						return true;
+					} else if (this.type === 1) {
+						return item.isFinished === false;
+					}else if (this.type === 2) {
+						return item.isFinished === true;
+					}
+				},
+				selectedType(num) {
+					this.type = num;
+				},
+				del: function(item) {
+					var index = this.items.indexOf(item);
+					this.items.splice(index,1);
+				},
+				add: function(text) {
+					if(text) {
+						var item = {
+							label : text,
+							isFinished: false
+						};
+						this.items.push(item);
+						this.newLabel = '';
+					}
+				},
+			    save: function(items){
+			    	console.log(JSON.stringify(items));
+
+			        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+			    }
+			}
+		});
+		vm.$watch('items',function() {
+			this.save(this.items);
+		},{
+			deep: true
+		});		
+
+	    function fetch(){
+	        return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+	    }
+	</script>
+</body>
+</html>
